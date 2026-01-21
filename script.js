@@ -168,6 +168,9 @@ function novafrase() {
   buscarFrase();
 }
 
+// Variável para armazenar a imagem gerada
+let imagemGerada = null;
+
 // Função para compartilhar
 async function compartilhar() {
   const card = document.getElementById('card-frase');
@@ -176,13 +179,16 @@ async function compartilhar() {
   const urlInput = document.getElementById('url-input');
   const fraseElemento = document.querySelector('h1');
   const autorElemento = document.querySelector('.autor');
+  const btnBaixar = document.getElementById('btn-baixar');
   
   // Gera e exibe a URL compartilhável
   const url = gerarURLCompartilhavel();
   urlInput.value = url;
   
-  // Mostra loading
+  // Mostra loading e desabilita botão de baixar
   preview.innerHTML = '<p style="color: #94a3b8;">Gerando preview...</p>';
+  btnBaixar.disabled = true;
+  btnBaixar.style.opacity = '0.5';
   modal.classList.add('ativo');
   
   // Força opacidade total antes de capturar
@@ -200,15 +206,30 @@ async function compartilhar() {
       useCORS: true
     });
     
-    const imagemGerada = canvas.toDataURL('image/png');
+    imagemGerada = canvas.toDataURL('image/png');
     preview.innerHTML = `<img src="${imagemGerada}" alt="Preview da frase">`;
+    
+    // Habilita botão de baixar
+    btnBaixar.disabled = false;
+    btnBaixar.style.opacity = '1';
     
   } catch (error) {
     console.error('Erro ao gerar preview:', error);
     // Usa a OG image como fallback
     const ogImage = gerarOGImageURL();
     preview.innerHTML = `<img src="${ogImage}" alt="Preview da frase" style="max-height: 200px;">`;
+    imagemGerada = null;
   }
+}
+
+// Baixar imagem
+function baixarImagem() {
+  if (!imagemGerada) return;
+  
+  const link = document.createElement('a');
+  link.download = 'pensamento-do-dia.png';
+  link.href = imagemGerada;
+  link.click();
 }
 
 // Copiar URL

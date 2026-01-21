@@ -183,6 +183,28 @@ button:active {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+.modal-acoes {
+  margin-top: 1rem;
+}
+
+.modal-acoes button {
+  padding: 0.8rem 1.5rem;
+  font-size: 0.9rem;
+  animation: none;
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  transition: all 0.3s ease;
+}
+
+.modal-acoes button:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: rgba(56, 189, 248, 0.7);
+}
+
+.modal-acoes button:disabled {
+  cursor: not-allowed;
+}
+
 .modal-dica {
   color: #64748b;
   font-size: 0.85rem;
