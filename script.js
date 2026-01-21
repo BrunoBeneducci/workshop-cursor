@@ -60,6 +60,9 @@ const frasesMockadas = [
 // Frase atual
 let fraseAtual = { content: '', author: '' };
 
+// Imagem gerada
+let imagemGerada = null;
+
 // Verifica se há frase na URL
 function verificarURL() {
   const params = new URLSearchParams(window.location.search);
@@ -84,25 +87,6 @@ function gerarURLCompartilhavel() {
   return `${baseURL}?${params.toString()}`;
 }
 
-// Gera URL da OG Image usando serviço externo
-function gerarOGImageURL() {
-  const texto = `"${fraseAtual.content}" — ${fraseAtual.author}`;
-  // Usando og.tailgraph.com para gerar OG image dinâmica
-  return `https://og.tailgraph.com/og?fontFamily=Outfit&title=${encodeURIComponent(texto)}&titleTailwind=text-white%20text-4xl%20text-center%20px-8&bgTailwind=bg-gradient-to-br%20from-slate-900%20via-slate-800%20to-indigo-900&width=1200&height=630`;
-}
-
-// Atualiza meta tags OG
-function atualizarOGTags() {
-  const url = gerarURLCompartilhavel();
-  const ogImageURL = gerarOGImageURL();
-  
-  document.getElementById('og-title').content = `"${fraseAtual.content}"`;
-  document.getElementById('og-description').content = `— ${fraseAtual.author}`;
-  document.getElementById('og-image').content = ogImageURL;
-  document.getElementById('og-url').content = url;
-  document.title = `${fraseAtual.content.substring(0, 50)}... | Pensamento do Dia`;
-}
-
 // Exibe a frase na tela
 function exibirFrase(frase) {
   const fraseElemento = document.querySelector('h1');
@@ -111,8 +95,6 @@ function exibirFrase(frase) {
   fraseAtual = frase;
   fraseElemento.textContent = `"${frase.content}"`;
   autorElemento.textContent = `— ${frase.author}`;
-  
-  atualizarOGTags();
 }
 
 async function buscarFraseAPI() {
@@ -168,9 +150,6 @@ function novafrase() {
   buscarFrase();
 }
 
-// Variável para armazenar a imagem gerada
-let imagemGerada = null;
-
 // Função para compartilhar
 async function compartilhar() {
   const card = document.getElementById('card-frase');
@@ -215,9 +194,7 @@ async function compartilhar() {
     
   } catch (error) {
     console.error('Erro ao gerar preview:', error);
-    // Usa a OG image como fallback
-    const ogImage = gerarOGImageURL();
-    preview.innerHTML = `<img src="${ogImage}" alt="Preview da frase" style="max-height: 200px;">`;
+    preview.innerHTML = '<p style="color: #ef4444;">Erro ao gerar imagem</p>';
     imagemGerada = null;
   }
 }
