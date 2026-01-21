@@ -87,6 +87,27 @@ function gerarURLCompartilhavel() {
   return `${baseURL}?${params.toString()}`;
 }
 
+// Gera URL da OG Image com placeholder
+function gerarOGImageURL(frase) {
+  // Limita o texto para caber na imagem
+  const textoFrase = frase.content.length > 80 
+    ? frase.content.substring(0, 80) + '...' 
+    : frase.content;
+  const texto = `"${textoFrase}"%0A— ${frase.author}`;
+  return `https://placehold.co/1200x630/16213e/e8e8e8?text=${encodeURIComponent(texto)}&font=raleway`;
+}
+
+// Atualiza meta tags OG
+function atualizarOGTags(frase) {
+  const ogTitle = document.getElementById('og-title');
+  const ogDescription = document.getElementById('og-description');
+  const ogImage = document.getElementById('og-image');
+  
+  if (ogTitle) ogTitle.content = `"${frase.content}"`;
+  if (ogDescription) ogDescription.content = `— ${frase.author}`;
+  if (ogImage) ogImage.content = gerarOGImageURL(frase);
+}
+
 // Exibe a frase na tela
 function exibirFrase(frase) {
   const fraseElemento = document.querySelector('h1');
@@ -95,6 +116,9 @@ function exibirFrase(frase) {
   fraseAtual = frase;
   fraseElemento.textContent = `"${frase.content}"`;
   autorElemento.textContent = `— ${frase.author}`;
+  
+  // Atualiza OG tags
+  atualizarOGTags(frase);
 }
 
 async function buscarFraseAPI() {
