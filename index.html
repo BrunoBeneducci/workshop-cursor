@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Workshop Cursor</title>
+  <title>Pensamento do Dia</title>
+  
+  <!-- OG Meta Tags (serão atualizadas via JS) -->
+  <meta property="og:title" content="Pensamento do Dia" id="og-title">
+  <meta property="og:description" content="Uma frase para inspirar seu dia" id="og-description">
+  <meta property="og:image" content="" id="og-image">
+  <meta property="og:url" content="" id="og-url">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11,10 +20,34 @@
 </head>
 <body>
   <main>
-    <h1>Carregando pensamento do dia...</h1>
-    <p class="autor"></p>
-    <button onclick="novafrase()">Nova Frase</button>
+    <div id="card-frase" class="card-frase">
+      <h1>Carregando pensamento do dia...</h1>
+      <p class="autor"></p>
+    </div>
+    <div class="botoes">
+      <button onclick="novafrase()">Nova Frase</button>
+      <button onclick="compartilhar()" class="btn-compartilhar">Compartilhar</button>
+    </div>
   </main>
+  
+  <!-- Modal de compartilhamento -->
+  <div id="modal-compartilhar" class="modal">
+    <div class="modal-content">
+      <span class="modal-fechar" onclick="fecharModal()">&times;</span>
+      <h2>Compartilhar Frase</h2>
+      
+      <div class="url-compartilhar">
+        <input type="text" id="url-input" readonly>
+        <button onclick="copiarURL()">Copiar Link</button>
+      </div>
+      
+      <div id="preview-imagem"></div>
+      
+      <p class="modal-dica">Compartilhe este link! Quem abrir verá a mesma frase.</p>
+    </div>
+  </div>
+
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

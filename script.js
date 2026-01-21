@@ -57,6 +57,64 @@ const frasesMockadas = [
   { content: "A vida adulta é pagar pra ter água quente e ainda assim tomar banho gelado no verão.", author: "Paradoxo Humano" }
 ];
 
+// Frase atual
+let fraseAtual = { content: '', author: '' };
+
+// Verifica se há frase na URL
+function verificarURL() {
+  const params = new URLSearchParams(window.location.search);
+  const frase = params.get('q');
+  const autor = params.get('a');
+  
+  if (frase && autor) {
+    return {
+      content: decodeURIComponent(frase),
+      author: decodeURIComponent(autor)
+    };
+  }
+  return null;
+}
+
+// Gera URL compartilhável
+function gerarURLCompartilhavel() {
+  const baseURL = window.location.origin + window.location.pathname;
+  const params = new URLSearchParams();
+  params.set('q', encodeURIComponent(fraseAtual.content));
+  params.set('a', encodeURIComponent(fraseAtual.author));
+  return `${baseURL}?${params.toString()}`;
+}
+
+// Gera URL da OG Image usando serviço externo
+function gerarOGImageURL() {
+  const texto = `"${fraseAtual.content}" — ${fraseAtual.author}`;
+  // Usando og.tailgraph.com para gerar OG image dinâmica
+  return `https://og.tailgraph.com/og?fontFamily=Outfit&title=${encodeURIComponent(texto)}&titleTailwind=text-white%20text-4xl%20text-center%20px-8&bgTailwind=bg-gradient-to-br%20from-slate-900%20via-slate-800%20to-indigo-900&width=1200&height=630`;
+}
+
+// Atualiza meta tags OG
+function atualizarOGTags() {
+  const url = gerarURLCompartilhavel();
+  const ogImageURL = gerarOGImageURL();
+  
+  document.getElementById('og-title').content = `"${fraseAtual.content}"`;
+  document.getElementById('og-description').content = `— ${fraseAtual.author}`;
+  document.getElementById('og-image').content = ogImageURL;
+  document.getElementById('og-url').content = url;
+  document.title = `${fraseAtual.content.substring(0, 50)}... | Pensamento do Dia`;
+}
+
+// Exibe a frase na tela
+function exibirFrase(frase) {
+  const fraseElemento = document.querySelector('h1');
+  const autorElemento = document.querySelector('.autor');
+  
+  fraseAtual = frase;
+  fraseElemento.textContent = `"${frase.content}"`;
+  autorElemento.textContent = `— ${frase.author}`;
+  
+  atualizarOGTags();
+}
+
 async function buscarFraseAPI() {
   const response = await fetch(API_URL);
   if (!response.ok) throw new Error('Erro na API');
@@ -68,9 +126,6 @@ function buscarFraseMockada() {
 }
 
 async function buscarFrase() {
-  const fraseElemento = document.querySelector('h1');
-  const autorElemento = document.querySelector('.autor');
-  
   // 50% chance de usar API, 50% chance de usar mockada
   const usarAPI = Math.random() > 0.5;
   
@@ -83,19 +138,20 @@ async function buscarFrase() {
       frase = buscarFraseMockada();
     }
     
-    fraseElemento.textContent = `"${frase.content}"`;
-    autorElemento.textContent = `— ${frase.author}`;
+    exibirFrase(frase);
     
   } catch (error) {
     console.warn('Usando frase mockada:', error.message);
     const frase = buscarFraseMockada();
-    fraseElemento.textContent = `"${frase.content}"`;
-    autorElemento.textContent = `— ${frase.author}`;
+    exibirFrase(frase);
   }
 }
 
 // Botão para nova frase
 function novafrase() {
+  // Limpa a URL quando pedir nova frase
+  window.history.replaceState({}, '', window.location.pathname);
+  
   const fraseElemento = document.querySelector('h1');
   const autorElemento = document.querySelector('.autor');
   
@@ -112,4 +168,100 @@ function novafrase() {
   buscarFrase();
 }
 
-document.addEventListener('DOMContentLoaded', buscarFrase);
+// Função para compartilhar
+async function compartilhar() {
+  const card = document.getElementById('card-frase');
+  const modal = document.getElementById('modal-compartilhar');
+  const preview = document.getElementById('preview-imagem');
+  const urlInput = document.getElementById('url-input');
+  const fraseElemento = document.querySelector('h1');
+  const autorElemento = document.querySelector('.autor');
+  
+  // Gera e exibe a URL compartilhável
+  const url = gerarURLCompartilhavel();
+  urlInput.value = url;
+  
+  // Mostra loading
+  preview.innerHTML = '<p style="color: #94a3b8;">Gerando preview...</p>';
+  modal.classList.add('ativo');
+  
+  // Força opacidade total antes de capturar
+  fraseElemento.style.opacity = '1';
+  autorElemento.style.opacity = '1';
+  fraseElemento.style.animation = 'none';
+  autorElemento.style.animation = 'none';
+  
+  try {
+    // Gera a imagem do card com fundo
+    const canvas = await html2canvas(card, {
+      backgroundColor: '#16213e',
+      scale: 2,
+      logging: false,
+      useCORS: true
+    });
+    
+    const imagemGerada = canvas.toDataURL('image/png');
+    preview.innerHTML = `<img src="${imagemGerada}" alt="Preview da frase">`;
+    
+  } catch (error) {
+    console.error('Erro ao gerar preview:', error);
+    // Usa a OG image como fallback
+    const ogImage = gerarOGImageURL();
+    preview.innerHTML = `<img src="${ogImage}" alt="Preview da frase" style="max-height: 200px;">`;
+  }
+}
+
+// Copiar URL
+function copiarURL() {
+  const urlInput = document.getElementById('url-input');
+  const botao = urlInput.nextElementSibling;
+  
+  navigator.clipboard.writeText(urlInput.value).then(() => {
+    botao.textContent = 'Copiado!';
+    botao.classList.add('copiado');
+    
+    setTimeout(() => {
+      botao.textContent = 'Copiar Link';
+      botao.classList.remove('copiado');
+    }, 2000);
+  }).catch(() => {
+    // Fallback
+    urlInput.select();
+    document.execCommand('copy');
+    botao.textContent = 'Copiado!';
+    botao.classList.add('copiado');
+    
+    setTimeout(() => {
+      botao.textContent = 'Copiar Link';
+      botao.classList.remove('copiado');
+    }, 2000);
+  });
+}
+
+// Fechar modal
+function fecharModal() {
+  const modal = document.getElementById('modal-compartilhar');
+  modal.classList.remove('ativo');
+}
+
+// Fechar modal clicando fora
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('modal-compartilhar');
+  if (e.target === modal) {
+    fecharModal();
+  }
+});
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+  // Verifica se há frase na URL
+  const fraseURL = verificarURL();
+  
+  if (fraseURL) {
+    // Exibe a frase da URL
+    exibirFrase(fraseURL);
+  } else {
+    // Busca uma frase aleatória
+    buscarFrase();
+  }
+});
